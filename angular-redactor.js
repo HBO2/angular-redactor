@@ -31,7 +31,9 @@
                             });
                         },
                         options = {
-                            changeCallback: updateModel
+                            callbacks: {
+                                change: updateModel
+                            }
                         },
                         additionalOptions = attrs.redactor ?
                             scope.$eval(attrs.redactor) : {},
@@ -39,31 +41,17 @@
 
                     angular.extend(options, redactorOptions, additionalOptions);
 
-                    // prevent collision with the constant values on ChangeCallback
-                    var changeCallback = additionalOptions.changeCallback || redactorOptions.changeCallback;
-                    if (changeCallback) {
-                        options.changeCallback = function(value) {
-                            updateModel.call(this, value);
-                            changeCallback.call(this, value);
-                        }
-                    }
-
-                    // put in timeout to avoid $digest collision.  call render() to
-                    // set the initial value.
+                    // put in timeout to avoid $digest collision.  call render()
+                    // to set the initial value.
                     $timeout(function() {
                         editor = element.redactor(options);
                         ngModel.$render();
-                        element.on('remove',function(){
-                            element.off('remove');
-                            element.redactor('core.destroy');
-                        });
                     });
 
                     ngModel.$render = function() {
                         if(angular.isDefined(editor)) {
                             $timeout(function() {
                                 element.redactor('code.set', ngModel.$viewValue || '');
-                                element.redactor('placeholder.toggle');
                                 scope.redactorLoaded = true;
                             });
                         }
@@ -72,4 +60,3 @@
             };
         }]);
 })();
-
